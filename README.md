@@ -12,6 +12,14 @@ pip install scrapy
 ```
 scrapy crawl dpm_search
 ```
+- 单独筛选下载，下载到all_images对应子目录中。
+```bash
+scrapy crawl dpm_search -a is_pc=1
+scrapy crawl dpm_search -a is_wap=1
+scrapy crawl dpm_search -a is_calendar=1
+scrapy crawl dpm_search -a is_four_k=1
+```
+- 多个筛选参数，还是下载到all_images下
 ## 四、下载路径
 
 - 图片下载地址：项目根目录py_scrapy\spiders\all_images中

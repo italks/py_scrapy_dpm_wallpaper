@@ -9,30 +9,58 @@ class DpmSearchSpider(scrapy.Spider):
     allowed_domains = ["dpm.org.cn"]
     start_urls = ["https://www.dpm.org.cn/lights/royal/"]
     total = 0
+    is_pc="0"
+    is_wap="0"
+    is_calendar="0"
+    is_four_k="0"
 
-    def parse(self, response):
-        sc=response.xpath('/html/body/div[4]/div[2]/div[2]/div/div[3]')
-        divlist=sc.xpath('//a[@data-key]')
-        for element in divlist:
-            if int(element.xpath('@data-key').get()) > self.total:
-                self.total=int(element.xpath('@data-key').get())
-        print("total",self.total)
-        #所有页面
-        for p in range(1,self.total+1):
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args, **kwargs)
+        kwargs.setdefault("is_pc",0)
+        kwargs.setdefault("is_wap",0)
+        kwargs.setdefault("is_calendar",0)
+        kwargs.setdefault("is_four_k",0)
+
+        self.is_pc=int(kwargs.get("is_pc"))
+        self.is_wap=int(kwargs.get("is_wap"))
+        self.is_calendar=int(kwargs.get("is_calendar"))
+        self.is_four_k=int(kwargs.get("is_four_k"))
+        print(f'启动参数self.is_pc={self.is_pc},self.is_wap={self.is_wap},self.is_calendar={self.is_calendar},self.is_four_k={self.is_four_k}')
+
+    def filter_num(self):
+        print("筛选请求")
+        search = {
+            "category_id": 624,
+            "p": 1,
+            "pagesize": 16,
+            "title": "",
+            "is_pc": self.is_pc,
+            "is_wap": self.is_wap,
+            "is_calendar": self.is_calendar,
+            "is_four_k": self.is_four_k,
+        }
+        base_url = 'https://www.dpm.org.cn/searchs/royalb.html'
+        url = f'{base_url}?{random.random()}&{urlencode(search)}'
+        # print('url',url)
+        yield scrapy.Request(url, self.parse_webNum)
+
+    def down(self):
+        # 所有页面
+        for p in range(1, self.total + 1):
             search = {
                 "category_id": 624,
                 "p": p,
                 "pagesize": 16,
                 "title": "",
-                "is_pc": 0,
-                "is_wap": 0,
-                "is_calendar": 0,
-                "is_four_k": 0,
+                "is_pc": self.is_pc,
+                "is_wap": self.is_wap,
+                "is_calendar": self.is_calendar,
+                "is_four_k": self.is_four_k,
             }
             base_url = 'https://www.dpm.org.cn/searchs/royalb.html'
             url = f'{base_url}?{random.random()}&{urlencode(search)}'
             # print('url',url)
-            yield scrapy.Request(url,self.parse_web)
+            yield scrapy.Request(url, self.parse_web)
         # 单个网页
         # search = {
         #     "category_id": 624,
@@ -48,6 +76,28 @@ class DpmSearchSpider(scrapy.Spider):
         # url = f'{base_url}?{random.random()}&{urlencode(search)}'
         # # print(url)
         # yield scrapy.Request(url, self.parse_web)
+
+    def parse(self, response):
+        sc=response.xpath('/html/body/div[4]/div[2]/div[2]/div/div[3]')
+        divlist=sc.xpath('//a[@data-key]')
+        for element in divlist:
+            if int(element.xpath('@data-key').get()) > self.total:
+                self.total=int(element.xpath('@data-key').get())
+        print("总页数",self.total,self.is_pc!=0 or self.is_wap!=0 or self.is_calendar!=0 or self.is_four_k!=0)
+        if self.is_pc!=0 or self.is_wap!=0 or self.is_calendar!=0 or self.is_four_k!=0:
+            yield from self.filter_num()
+        else:
+            yield from self.down()
+
+
+
+    def parse_webNum(self,response):
+        buttons = response.xpath('//div/div/div/div/button')
+        self.total=int(buttons.xpath('@data-max').get())
+        print('筛选后页数',self.total)
+        yield from self.down()
+        # for button in buttons:
+
 
     def parse_web(self, response):
         request_url = response.url
@@ -75,6 +125,18 @@ class DpmSearchSpider(scrapy.Spider):
         path = response.url.split('/')[-1]
         root_path=os.getcwd()
         subdir =r'py_scrapy\spiders\all_images'
+        if self.is_pc != 0 or self.is_wap != 0 or self.is_calendar != 0 or self.is_four_k != 0:
+            if self.is_pc!=0 and self.is_wap==0 and self.is_calendar==0 and self.is_four_k==0:
+                subdir=subdir+r'\pc'
+            if self.is_wap!=0 and self.is_pc==0 and self.is_calendar==0 and self.is_four_k==0:
+                subdir=subdir+r'\wap'
+            if self.is_calendar!=0 and self.is_pc==0 and self.is_wap==0 and self.is_four_k==0:
+                subdir=subdir+r'\calendar'
+            if self.is_four_k!=0 and self.is_pc==0 and self.is_calendar==0 and self.is_wap==0:
+                subdir=subdir+r'\four_k'
+        dir=os.path.join(root_path,subdir)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         path=os.path.join(root_path,subdir,path)
         # print(path)
         with open(path, 'wb') as f:
