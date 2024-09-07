@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/py_scrapy.iml" filepath="$PROJECT_DIR$/.idea/py_scrapy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/py_scrapy_dpm_wallpaper.iml" filepath="$PROJECT_DIR$/.idea/py_scrapy_dpm_wallpaper.iml" />
     </modules>
   </component>
 </project>

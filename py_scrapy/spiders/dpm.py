@@ -6,18 +6,18 @@ import scrapy
 class DpmSpider(scrapy.Spider):
     name = "dpm"
     allowed_domains = ["dpm.org.cn"]
-    # ("https://www.dpm.org.cn/searchs/royalb.html?"
-    #  "0.1966713757279901&category_id=624&p=1&pagesize=16&title=&is_pc=1&is_wap=0&is_calendar=0&is_four_k=0")
-    # search={
-    #     "category_id":624,
-    #     "p":1,
-    #     "pagesize":16,
-    #     "title":"",
-    #     "is_pc":0,
-    #     "is_wap":0,
-    #     "is_calendar":0,
-    #     "is_four_k":0,
-    # }
+    ("https://www.dpm.org.cn/searchs/royalb.html?"
+     "0.1966713757279901&category_id=624&p=1&pagesize=16&title=&is_pc=1&is_wap=0&is_calendar=0&is_four_k=0")
+    search={
+        "category_id":624,
+        "p":1,
+        "pagesize":16,
+        "title":"",
+        "is_pc":0,
+        "is_wap":0,
+        "is_calendar":0,
+        "is_four_k":0,
+    }
     start_urls = ["https://www.dpm.org.cn/lights/royal/"]
     total=0
 
