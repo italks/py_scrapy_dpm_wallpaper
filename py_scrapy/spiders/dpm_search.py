@@ -3,7 +3,7 @@ import random
 from urllib.parse import urlencode
 import os
 from urllib.parse import urlparse, parse_qs
-
+import urllib.parse
 class DpmSearchSpider(scrapy.Spider):
     name = "dpm_search"
     allowed_domains = ["dpm.org.cn"]
@@ -13,6 +13,28 @@ class DpmSearchSpider(scrapy.Spider):
     is_wap="0"
     is_calendar="0"
     is_four_k="0"
+    #默认大小
+    # 1280 x 800=2
+    # 1680 x 1050=3
+    # 1920 x 1080=4
+    # 1080 x 1920=6
+    # 1125 x 2436=7
+    # 1125 x 2436=8
+    # 1248 x 2778=9
+    # 1248 x 2778=11
+    # 2560 x 1440=12
+    size_name={
+        "2":"1280 x 800",
+        "3":"1680 x 1050",
+        "4":"1920 x 1080",
+        "6":"1080 x 1920",
+        "7":"1125 x 2436",
+        "8":"1125 x 2436",
+        "9":"1248 x 2778",
+        "11":"1248 x 2778",
+        "12":"2560 x 1440",
+    }
+    size=4
 
     def __init__(self,*args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,6 +42,7 @@ class DpmSearchSpider(scrapy.Spider):
         kwargs.setdefault("is_wap",0)
         kwargs.setdefault("is_calendar",0)
         kwargs.setdefault("is_four_k",0)
+        kwargs.setdefault("size",4)
 
         self.is_pc=int(kwargs.get("is_pc"))
         self.is_wap=int(kwargs.get("is_wap"))
@@ -67,10 +90,10 @@ class DpmSearchSpider(scrapy.Spider):
         #     "p": 1,
         #     "pagesize": 16,
         #     "title": "",
-        #     "is_pc": 0,
-        #     "is_wap": 0,
-        #     "is_calendar": 0,
-        #     "is_four_k": 0,
+        #     "is_pc": self.is_pc,
+        #     "is_wap": self.is_wap,
+        #     "is_calendar": self.is_calendar,
+        #     "is_four_k": self.is_four_k,
         # }
         # base_url = 'https://www.dpm.org.cn/searchs/royalb.html'
         # url = f'{base_url}?{random.random()}&{urlencode(search)}'
@@ -112,8 +135,17 @@ class DpmSearchSpider(scrapy.Spider):
             data_key = element.xpath('@data-key').get()
             array = data_key.split(",")
             for item in array:
-                yield scrapy.Request("https://www.dpm.org.cn/light/" + item + ".html", self.parse_item)
+                # yield scrapy.Request("https://www.dpm.org.cn/light/" + item + ".html", self.parse_item)
+                yield scrapy.Request(f'https://www.dpm.org.cn/download/lights_image/id/{item}/img_size/{self.size}.html',
+                                     self.save_image,
+                                     errback=self.errback,
+                                     meta={"name":f'{item}_{self.size}.png'}
+                                     )
 
+    def errback(self, failure):
+        print(failure)
+
+    #获取网址内容中所有图片地址
     def parse_item(self, response):
         elements = response.xpath("/html/body/div[2]/img")
         for element in elements:
@@ -122,7 +154,14 @@ class DpmSearchSpider(scrapy.Spider):
             yield scrapy.Request(src, self.save_image)
 
     def save_image(self, response):
-        path = response.url.split('/')[-1]
+        name=response.meta['name']
+        content_disposition=response.headers['Content-Disposition'].decode('utf-8')
+        filename_part = content_disposition.split("filename*=utf-8''")[1]
+        filename = urllib.parse.unquote_plus(filename_part)
+        if filename:
+            path=filename
+        else:
+            path = response.url.split('/')[-1]
         root_path=os.getcwd()
         subdir =r'py_scrapy\spiders\all_images'
         if self.is_pc != 0 or self.is_wap != 0 or self.is_calendar != 0 or self.is_four_k != 0:
