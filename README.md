@@ -42,3 +42,9 @@ scrapy crawl dpm_search -a is_pc=1 -a size=12
 ![下载中](png/1.png)
 ![下载后文件](png/2.png)
 ![中文名称](png/3.png)
+
+## 五、版权声明
+
+图片版权归`http://www.dpm.org.cn`所有，不得商用。
+
+任何单位或个人在以转载、引用、摘编、下载等方式使用本网站内容时，均须注明作者，并标明图片、文章的出处为“故宫博物院网站”或`http://www.dpm.org.cn`。未经故宫博物院或相关权利人的书面许可，不得修改所使用的内容。[故宫博物院](https://www.dpm.org.cn/bottom/privacy/236341.html)
